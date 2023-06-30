@@ -31,7 +31,7 @@ from bot.helper.ext_utils.db_handler import DbManger
 
 
 class MirrorLeechListener:
-    def __init__(self, message, compress=None, extract=None, isQbit=False, isLeech=False, tag=None, select=False, seed=False, sameDir=None, rcFlags=None, upPath=None, join=False):
+    def __init__(self, message, compress=False, extract=False, isQbit=False, isLeech=False, tag=None, select=False, seed=False, sameDir=None, rcFlags=None, upPath=None, join=False):
         if sameDir is None:
             sameDir = {}
         self.message = message
@@ -71,7 +71,7 @@ class MirrorLeechListener:
         multi_links = False
         while True:
             if self.sameDir:
-                if self.sameDir['total'] == 1 or self.sameDir['total'] > 1 and len(self.sameDir['tasks']) > 1:
+                if self.sameDir['total'] in [1, 0] or self.sameDir['total'] > 1 and len(self.sameDir['tasks']) > 1:
                     break
             else:
                 break
@@ -104,7 +104,11 @@ class MirrorLeechListener:
             return
 
         if name == "None" or self.isQbit or not await aiopath.exists(f"{self.dir}/{name}"):
-            files = await listdir(self.dir)
+            try:
+                files = await listdir(self.dir)
+            except Exception as e:
+                await self.onUploadError(str(e))
+                return
             name = files[-1]
             if name == "yt-dlp-thumb":
                 name = files[0]
@@ -118,11 +122,11 @@ class MirrorLeechListener:
         await start_from_queued()
         user_dict = user_data.get(self.message.from_user.id, {})
 
-        if self.join:
+        if self.join and await aiopath.isdir(dl_path):
             await join_files(dl_path)
 
-        if self.extract is not None:
-            pswd = self.extract
+        if self.extract:
+            pswd = self.extract if isinstance(self.extract, str) else ''
             try:
                 if await aiopath.isfile(dl_path):
                     up_path = get_base_name(dl_path)
@@ -194,8 +198,8 @@ class MirrorLeechListener:
                 self.newDir = ""
                 up_path = dl_path
 
-        if self.compress is not None:
-            pswd = self.compress
+        if self.compress:
+            pswd = self.compress if isinstance(self.compress, str) else ''
             if up_path:
                 dl_path = up_path
                 up_path = f"{up_path}.zip"
@@ -232,7 +236,7 @@ class MirrorLeechListener:
             elif not self.seed:
                 await clean_target(dl_path)
 
-        if self.compress is None and self.extract is None:
+        if not self.compress and not self.extract:
             up_path = dl_path
 
         up_dir, up_name = up_path.rsplit('/', 1)
@@ -240,7 +244,7 @@ class MirrorLeechListener:
         if self.isLeech:
             m_size = []
             o_files = []
-            if self.compress is None:
+            if not self.compress:
                 checked = False
                 LEECH_SPLIT_SIZE = user_dict.get(
                     'split_size', False) or config_dict['LEECH_SPLIT_SIZE']
@@ -396,7 +400,7 @@ class MirrorLeechListener:
             if self.seed:
                 if self.newDir:
                     await clean_target(self.newDir)
-                elif self.compress is not None:
+                elif self.compress:
                     await clean_target(f"{self.dir}/{name}")
                 async with queue_dict_lock:
                     if self.uid in non_queued_up:
