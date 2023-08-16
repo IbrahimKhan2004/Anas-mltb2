@@ -381,17 +381,16 @@ class MirrorLeechListener:
                     if mime_type == "Folder":
                         share_url += '/'
                     buttons.ubutton("🔗 Rclone Link", share_url)
-                if not rclonePath and dir_id:
-                    INDEX_URL = ''
-                    if private:
-                        INDEX_URL = self.user_dict['index_url'] if self.user_dict.get('index_url') else ''
-                    elif config_dict['INDEX_URL']:
-                        INDEX_URL = config_dict['INDEX_URL']
-                    if INDEX_URL:
-                        share_url = f'{INDEX_URL}findpath?id={dir_id}'
+                elif (INDEX_URL := config_dict['INDEX_URL']) and not rclonePath:
+                    url_path = rutils.quote(f'{name}')
+                    share_url = f'{INDEX_URL}/{url_path}'
+                    if mime_type == "Folder":
+                        share_url += '/'
+                        buttons.ubutton("⚡ Index Link", share_url)
+                    else:
                         buttons.ubutton("⚡ Index Link", share_url)
                         if mime_type.startswith(('image', 'video', 'audio')):
-                            share_urls = f'{INDEX_URL}findpath?id={dir_id}&view=true'
+                            share_urls = f'{INDEX_URL}/{url_path}?a=view'
                             buttons.ubutton("🌐 View Link", share_urls)
                 button = buttons.build_menu(2)
             else:
