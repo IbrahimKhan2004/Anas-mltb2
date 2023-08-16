@@ -105,12 +105,7 @@ class gdSearch(GoogleDriveHelper):
                     msg += f"📁 <code>{file.get('name')}<br>(folder)</code><br>"
                     msg += f"<b><a href={furl}>Drive Link</a></b>"
                     if index_url:
-                        if isRecur:
-                            url_path = "/".join([rquote(n, safe='')
-                                                for n in self.__get_recursive_list(file, dir_id)])
-                        else:
-                            url_path = rquote(f'{file.get("name")}', safe='')
-                        url = f'{index_url}/{url_path}/'
+                        url = f'{index_url}findpath?id={file.get("id")}'
                         msg += f' <b>| <a href="{url}">Index Link</a></b>'
                 elif mime_type == 'application/vnd.google-apps.shortcut':
                     furl = self.G_DRIVE_DIR_BASE_DOWNLOAD_URL.format(
@@ -123,15 +118,10 @@ class gdSearch(GoogleDriveHelper):
                     msg += f"📄 <code>{file.get('name')}<br>({get_readable_file_size(int(file.get('size', 0)))})</code><br>"
                     msg += f"<b><a href={furl}>Drive Link</a></b>"
                     if index_url:
-                        if isRecur:
-                            url_path = "/".join(rquote(n, safe='')
-                                                for n in self.__get_recursive_list(file, dir_id))
-                        else:
-                            url_path = rquote(f'{file.get("name")}')
-                        url = f'{index_url}/{url_path}'
+                        url = f'{index_url}findpath?id={file.get("id")}'
                         msg += f' <b>| <a href="{url}">Index Link</a></b>'
                         if mime_type.startswith(('image', 'video', 'audio')):
-                            urlv = f'{index_url}/{url_path}?a=view'
+                            urlv = f'{index_url}findpath?id={file.get("id")}&view=true'
                             msg += f' <b>| <a href="{urlv}">View Link</a></b>'
                 msg += '<br><br>'
                 contents_no += 1
