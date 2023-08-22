@@ -56,7 +56,7 @@ class gdClone(GoogleDriveHelper):
                 if mime_type is None:
                     mime_type = 'File'
                 size = int(meta.get('size', 0))
-            return durl, size, mime_type, self.total_files, self.total_folders, self.getIdFromUrl(link, self.listener.user_id)
+            return durl, size, mime_type, self.total_files, self.total_folders, self.getIdFromUrl(durl, self.listener.user_id)
         except Exception as err:
             if isinstance(err, RetryError):
                 LOGGER.info(
@@ -84,6 +84,12 @@ class gdClone(GoogleDriveHelper):
         files = self.getFilesByFolderId(folder_id)
         if len(files) == 0:
             return dest_id
+        if self.listener.user_dict.get('excluded_extensions', False):
+            extension_filter = self.listener.user_dict['excluded_extensions']
+        elif 'excluded_extensions' not in self.listener.user_dict:
+            extension_filter = GLOBAL_EXTENSION_FILTER
+        else:
+            extension_filter = ['aria2', '!qB']
         for file in files:
             if file.get('mimeType') == self.G_DRIVE_DIR_MIME_TYPE:
                 self.total_folders += 1
@@ -91,7 +97,7 @@ class gdClone(GoogleDriveHelper):
                 current_dir_id = self.create_directory(
                     file.get('name'), dest_id)
                 self.__cloneFolder(file_path, file.get('id'), current_dir_id)
-            elif not file.get('name').lower().endswith(tuple(GLOBAL_EXTENSION_FILTER)):
+            elif not file.get('name').lower().endswith(tuple(extension_filter)):
                 self.total_files += 1
                 self.__copyFile(file.get('id'), dest_id)
                 self.proc_bytes += int(file.get('size', 0))
