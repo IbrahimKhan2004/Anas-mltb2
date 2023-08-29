@@ -311,10 +311,10 @@ def pixeldrain(url: str) -> str:
     file_id = url.split("/")[-1]
     if url.split("/")[-2] == "l":
         info_link = f"https://pixeldrain.com/api/list/{file_id}"
-        dl_link = f"https://pixeldrain.com/api/list/{file_id}/zip?download"
+        dl_link = f"https://pixeldrain.com/api/list/{file_id}/zip"
     else:
         info_link = f"https://pixeldrain.com/api/file/{file_id}/info"
-        dl_link = f"https://pixeldrain.com/api/file/{file_id}?download"
+        dl_link = f"https://pixeldrain.com/api/file/{file_id}"
     cget = create_scraper().request
     try:
         resp = cget('get', info_link).json()
@@ -469,14 +469,25 @@ def krakenfiles(page_link: str) -> str:
     soup = BeautifulSoup(page_resp.text, "lxml")
     try:
         token = soup.find("input", id="dl-token")["value"]
-        form_tag = soup.find('form')
-        action_url ="https:" + form_tag.get('action')
     except:
         raise DirectDownloadLinkException(
             f"ERROR: Page link is wrong: {page_link}")
-
+    hashes = [
+        item["data-file-hash"]
+        for item in soup.find_all("div", attrs={"data-file-hash": True})
+    ]
+    if not hashes:
+        raise DirectDownloadLinkException(
+            f"ERROR: Hash not found for : {page_link}")
+    dl_hash = hashes[0]
+    payload = f'------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name="token"\r\n\r\n{token}\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW--'
+    headers = {
+        "content-type": "multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW",
+        "cache-control": "no-cache",
+        "hash": dl_hash,
+    }
     dl_link_resp = cget(
-        'post', action_url, data= {'token': token})
+        'post', f"https://krakenfiles.com/download/{hash}", data=payload, headers=headers)
     dl_link_json = dl_link_resp.json()
     if "url" in dl_link_json:
         return dl_link_json["url"]
