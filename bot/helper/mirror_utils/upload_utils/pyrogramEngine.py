@@ -279,7 +279,7 @@ class TgUploader:
                 if self.__is_cancelled:
                     return
                 self.__sent_msg = await self.__sent_msg.reply_document(document=self.__up_path,
-                                                                       quote=False,
+                                                                       quote=True,
                                                                        thumb=thumb,
                                                                        caption=cap_mono,
                                                                        force_document=True,
@@ -311,7 +311,7 @@ class TgUploader:
                 if self.__is_cancelled:
                     return
                 self.__sent_msg = await self.__sent_msg.reply_video(video=self.__up_path,
-                                                                    quote=False,
+                                                                    quote=True,
                                                                     caption=cap_mono,
                                                                     duration=duration,
                                                                     width=width,
@@ -326,7 +326,7 @@ class TgUploader:
                 if self.__is_cancelled:
                     return
                 self.__sent_msg = await self.__sent_msg.reply_audio(audio=self.__up_path,
-                                                                    quote=False,
+                                                                    quote=True,
                                                                     caption=cap_mono,
                                                                     duration=duration,
                                                                     performer=artist,
@@ -339,7 +339,7 @@ class TgUploader:
                 if self.__is_cancelled:
                     return
                 self.__sent_msg = await self.__sent_msg.reply_photo(photo=self.__up_path,
-                                                                    quote=False,
+                                                                    quote=True,
                                                                     caption=cap_mono,
                                                                     disable_notification=True,
                                                                     progress=self.__upload_progress)
