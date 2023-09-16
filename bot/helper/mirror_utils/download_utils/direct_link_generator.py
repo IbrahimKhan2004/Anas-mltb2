@@ -173,6 +173,8 @@ def mediafire(url, session=None):
         return final_link[0]
     if session is None:
         session = Session()
+        parsed_url = urlparse(url)
+        url = f'{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}'
     try:
         html = HTML(session.get(url).text)
     except Exception as e:
@@ -842,7 +844,7 @@ def mediafireFolder(url):
     if len(folderkey) == 1:
         folderkey = folderkey[0]
     details = {'contents': [], 'title': '', 'total_size': 0, 'header': ''}
-    
+
     session = req_session()
     adapter = HTTPAdapter(max_retries=Retry(
         total=10, read=10, connect=10, backoff_factor=0.3))
@@ -1080,6 +1082,7 @@ def doods(url):
     with create_scraper() as session:
         try:
             _res = session.get(url)
+            _res = session.get(_res.url)
             html = HTML(_res.text)
         except Exception as e:
             raise DirectDownloadLinkException(f'ERROR: {e.__class__.__name__} While fetching token link')
@@ -1151,6 +1154,8 @@ def filelions(url):
         spited_file_code = file_code.rsplit('_', 1)
         quality = spited_file_code[1]
         file_code = spited_file_code[0]
+    parsed_url = urlparse(url)
+    url = f'{parsed_url.scheme}://{parsed_url.hostname}/{file_code}'
     with Session() as session:
         try:
             _res = session.get('https://api.filelions.com/api/file/direct_link', params={'key': config_dict['FILELION_API'], 'file_code': file_code, 'hls': '1'}).json()
